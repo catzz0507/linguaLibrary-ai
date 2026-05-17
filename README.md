@@ -1,6 +1,6 @@
 # LinguaLibrary AI
 
-> A Gemma 4-powered multilingual language learning platform, starting with JLPT Japanese.
+> A Gemma 4-powered multilingual language learning platform, starting with Japanese learning through an RPG-style quiz battle prototype.
 
 ---
 
@@ -8,9 +8,11 @@
 
 LinguaLibrary AI is a game-based language learning platform that combines RPG gameplay with AI-generated educational content.
 
-The current prototype focuses on JLPT Japanese learning, where players answer AI-generated quiz questions during real-time battle encounters.
+The current prototype focuses on Japanese learning, where players answer AI-generated practice questions during RPG-style battle encounters.
 
-Instead of relying on static worksheets or repetitive flashcards, LinguaLibrary AI transforms language practice into an interactive gameplay loop.
+Instead of relying only on static worksheets, repetitive flashcards, or fixed question banks, LinguaLibrary AI transforms language practice into an interactive gameplay loop.
+
+The current version is implemented as a Japanese learning prototype, but the long-term goal is to expand the same system into a multilingual learning platform.
 
 ---
 
@@ -23,8 +25,9 @@ Language learners often face several challenges:
 - Low engagement and motivation
 - Dependence on constant internet connectivity
 - Lack of adaptive learning experiences
+- Limited support for learners studying less commercially dominant languages
 
-Traditional quiz apps rarely feel immersive or rewarding.
+Traditional quiz apps can help with memorization, but they often fail to provide an engaging and repeatable learning experience.
 
 ---
 
@@ -34,37 +37,64 @@ LinguaLibrary AI uses Gemma 4 to dynamically generate structured language-learni
 
 Players:
 
-- Solve JLPT-style questions
+- Solve Japanese practice questions
 - Select answers during battle
 - Trigger combat actions through correct responses
-- Learn through repeated gameplay interaction
+- Receive immediate correct / incorrect feedback
+- Continue learning through repeated gameplay interaction
 
-The result is a more engaging and scalable learning experience.
+The result is a more engaging and scalable learning experience that combines AI-generated educational content with game-based motivation.
 
 ---
 
 ## Why Gemma 4
 
+LinguaLibrary AI uses **Gemma 4 E4B running through a local inference server** to generate structured language-learning questions.
+
+This approach reduces dependency on cloud-only AI platforms and supports more privacy-preserving learning workflows.
+
 Gemma 4 enables:
 
 - Local AI inference
 - Structured educational content generation
-- Flexible multilingual expansion
-- Reduced dependency on cloud-only systems
-- Potential offline learning workflows
+- Lower dependency on constant internet connectivity
+- Reduced reliance on paid cloud-based learning tools
+- More privacy-preserving learning workflows
+- Flexible expansion to multiple languages and exam systems
 
-Instead of manually authoring thousands of questions, the system generates quiz content dynamically through prompt-driven generation.
+Instead of manually authoring thousands of static questions, the system generates quiz content dynamically through prompt-driven generation and validates the model output before it enters gameplay.
 
 ---
 
-## Current Prototype: JLPT Battle Mode
+## Digital Equity & Inclusivity
+
+LinguaLibrary AI is designed with digital accessibility in mind.
+
+Many language learners depend on paid tutors, premium learning platforms, or always-online services. These requirements can create barriers for learners who have limited internet access, limited financial resources, or privacy concerns.
+
+By using local Gemma 4 inference, LinguaLibrary AI aims to reduce dependency on:
+
+- Paid tutoring services
+- Cloud-only AI platforms
+- Constant internet connectivity
+- Fixed and repetitive question banks
+- Centralized learning platforms that may not support every learner's language goals
+
+The current prototype focuses on Japanese learning, but the same architecture can be extended to other languages and exam systems.
+
+This supports a broader vision: making adaptive language education more accessible, multilingual, and less dependent on expensive or always-connected infrastructure.
+
+---
+
+## Current Prototype: Japanese Quiz Battle Mode
 
 The current implementation supports:
 
-- JLPT-style Japanese quizzes
+- Japanese practice questions
+- JLPT-inspired learning format
 - Multiple question categories
 - Four-choice answer system
-- RPG battle gameplay
+- RPG-style battle gameplay
 - Quiz queue system
 - Prompt-based question generation
 - Structured quiz parsing
@@ -85,7 +115,7 @@ The current implementation supports:
 
 ## Long-Term Vision
 
-JLPT is only the first module.
+JLPT-inspired Japanese learning is only the first module.
 
 The long-term goal is to evolve LinguaLibrary AI into a unified multilingual learning platform supporting:
 
@@ -95,6 +125,7 @@ The long-term goal is to evolve LinguaLibrary AI into a unified multilingual lea
 - Spanish DELE
 - French DELF
 - German Goethe-Zertifikat
+- Other language-learning goals and proficiency systems
 
 The architecture separates:
 
@@ -110,19 +141,23 @@ This allows future language modules to reuse the same AI-powered learning pipeli
 ## Architecture
 
 ```text
-Unity Game
+Unity Game Client
     ↓
 QuizProvider
     ↓
 PromptBuilder
     ↓
-Gemma 4 API
+Local Gemma-Compatible Inference Server
+    ↓
+Model: Gemma 4 E4B
+    ↓
+Structured JSON Response
     ↓
 JSON Parser / Validator
     ↓
 Quiz Queue
     ↓
-Battle Gameplay
+RPG Battle Gameplay
 ```
 
 ---
@@ -147,9 +182,10 @@ Next Question Loaded
 
 - Unity 6
 - C#
-- Gemma 4
-- Local LLM API workflow
-- JSON-based structured parsing
+- Gemma 4 E4B
+- Local inference server workflow
+- Prompt-based structured generation
+- JSON-based parsing and validation
 
 ---
 
@@ -158,7 +194,6 @@ Next Question Loaded
 ### Gameplay
 
 ![Gameplay](docs/GamePlay.png)
-
 
 ### Battle Feedback
 
@@ -173,16 +208,18 @@ Current state:
 - Prototype completed
 - GitHub repository prepared
 - Gameplay loop implemented
-- Hackathon submission materials in progress
+- README and hackathon documentation in progress
+- Submission materials being prepared for the Gemma 4 Hackathon
 
 Planned next steps:
 
 - Adaptive difficulty system
 - Additional language modules
+- Review system for incorrect answers
 - Audio and pronunciation training
-- Multiplayer learning features
+- Multimodal learning content
 - Teacher dashboard
-- Mobile deployment
+- Web or mobile deployment
 
 ---
 
@@ -191,15 +228,15 @@ Planned next steps:
 ### Requirements
 
 - Unity 6
-- Local Gemma 4-compatible API server
+- Gemma 4 E4B running through a local inference server
 
 ### Run Instructions
 
-1. Clone this repository
-2. Open the project in Unity
-3. Configure local API endpoint
-4. Launch the main gameplay scene
-5. Start learning through battle gameplay
+1. Clone this repository.
+2. Open the project in Unity.
+3. Configure the local inference server endpoint.
+4. Launch the main gameplay scene.
+5. Start learning through RPG-style quiz battle gameplay.
 
 ---
 
@@ -210,7 +247,8 @@ Assets/
 Packages/
 ProjectSettings/
 docs/
-└─ screenshots/
+├─ GamePlay.png
+└─ Battle_correct.png
 ```
 
 ---
@@ -222,6 +260,14 @@ This project is being prepared for the Gemma 4 Hackathon under the categories:
 - Future of Education
 - Digital Equity & Inclusivity
 
+LinguaLibrary AI fits these categories because it explores how local AI inference can support accessible, adaptive, and privacy-conscious language education.
+
 ---
 
+## Disclaimer
 
+LinguaLibrary AI is an independent educational prototype.
+
+The current Japanese learning module generates JLPT-inspired practice questions for study purposes. It is not affiliated with, endorsed by, or officially connected to the official JLPT organization or any related testing authority.
+
+The generated questions are AI-created practice materials and are not official exam questions.
