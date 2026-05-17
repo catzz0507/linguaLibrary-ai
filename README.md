@@ -157,7 +157,7 @@ Next Question Loaded
 
 ### Gameplay
 
-![Gameplay](docs/GamePlay_full.png)
+![Gameplay](docs/GamePlay.png)
 
 
 ### Battle Feedback
