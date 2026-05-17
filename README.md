@@ -138,7 +138,27 @@ This allows future language modules to reuse the same AI-powered learning pipeli
 
 ---
 
+## Future Offline Distribution
+
+The current prototype uses Gemma 4 E4B through a local inference server. This design already reduces dependency on cloud-only AI platforms, but the long-term goal is to move toward a fully bundled offline distribution.
+
+In future versions, LinguaLibrary AI aims to package an optimized local model runtime together with the game client. This would allow learners to download the game and generate new questions directly on their own device without requiring internet access or a separate cloud API.
+
+This direction is especially important for:
+
+- Classrooms with unstable internet access
+- Learners who cannot rely on paid cloud-based learning platforms
+- Privacy-sensitive learning environments
+- Communities that need multilingual learning tools without always-online infrastructure
+```
+
 ## Architecture
+
+The current prototype uses a Unity game client connected to Gemma 4 E4B through a local inference server. The model generates JLPT-inspired practice questions in a strict JSON format. The generated response is parsed, validated, stored in a quiz queue, and then used by the RPG battle gameplay system.
+
+If the local AI request fails or times out, the game falls back to bundled sample questions from `sample_questions.json`, allowing the demo to remain playable without requiring a local AI server.
+
+![Architecture](docs/Architecture.png)
 
 ```text
 Unity Game Client
@@ -159,7 +179,22 @@ Quiz Queue
     ↓
 RPG Battle Gameplay
 ```
+## Demo Mode and Fallback System
 
+LinguaLibrary AI supports two execution modes:
+
+1. **Local Gemma Mode**
+   - Uses Gemma 4 E4B through a local inference server.
+   - Generates JLPT-inspired Japanese practice questions dynamically.
+   - Parses and validates the AI response before using it in gameplay.
+
+2. **Demo / Fallback Mode**
+   - Uses bundled sample questions from `Assets/StreamingAssets/sample_questions.json`.
+   - Allows the game to remain playable even when a local Gemma server is unavailable.
+   - Helps judges and testers experience the gameplay loop without installing a local AI runtime.
+
+If the local inference server cannot be reached, or if the AI request times out, the game automatically falls back to sample questions when `fallbackToSampleQuestions` is enabled.
+```
 ---
 
 ## Example Gameplay Loop
@@ -244,9 +279,13 @@ Planned next steps:
 
 ```text
 Assets/
+├─ StreamingAssets/
+│  ├─ sample_questions.json
+│  └─ config.example.json
 Packages/
 ProjectSettings/
 docs/
+├─ Architecture.png
 ├─ GamePlay.png
 └─ Battle_correct.png
 ```
