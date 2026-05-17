@@ -18,8 +18,22 @@ public class QuizProvider : MonoBehaviour
     private Queue<QuizData> quizQueue = new Queue<QuizData>();
     private bool isGenerating = false;
 
+    private AppConfig config;
+    private List<QuizData> sampleQuestions = new List<QuizData>();
+    private int sampleIndex = 0;
+
     public bool IsGenerating => isGenerating;
     public int QueueCount => quizQueue.Count;
+
+    private void Awake()
+    {
+        config = AppConfig.Load();
+        sampleQuestions = SampleQuestionLoader.LoadSampleQuestions();
+
+        Debug.Log($"[QuizProvider] Demo Mode: {config.useDemoMode}");
+        Debug.Log($"[QuizProvider] Fallback Enabled: {config.fallbackToSampleQuestions}");
+        Debug.Log($"[QuizProvider] Sample Question Count: {sampleQuestions.Count}");
+    }
 
     public bool HasEnoughQuizzesToStart()
     {
@@ -29,6 +43,15 @@ public class QuizProvider : MonoBehaviour
     public IEnumerator Initialize(string jlptLevel)
     {
         quizQueue.Clear();
+
+        if (config.useDemoMode)
+        {
+            Debug.Log("[QuizProvider] Demo Mode enabled. Loading sample questions.");
+            EnqueueSampleQuizzes(initialBatchSize);
+            TryStartBackgroundRefill(jlptLevel, true);
+            yield break;
+        }
+
         yield return StartCoroutine(GenerateAndEnqueueOnce(jlptLevel, initialBatchSize));
 
         if (quizQueue.Count < minimumStartQuizCount)
@@ -37,13 +60,30 @@ public class QuizProvider : MonoBehaviour
 
             while (quizQueue.Count < minimumStartQuizCount)
             {
+                int previousCount = quizQueue.Count;
                 int needCount = minimumStartQuizCount - quizQueue.Count;
+
                 yield return StartCoroutine(GenerateAndEnqueueOnce(jlptLevel, needCount));
 
-                if (quizQueue.Count == 0)
+                if (quizQueue.Count == previousCount)
                 {
-                    Debug.LogWarning("No valid quizzes were generated. Check the LM Studio response.");
-                    yield return null;
+                    Debug.LogWarning("No additional valid quizzes were generated.");
+
+                    if (config.fallbackToSampleQuestions)
+                    {
+                        Debug.LogWarning("[QuizProvider] Falling back to sample questions during initialization.");
+                        EnqueueSampleQuizzes(needCount);
+                    }
+                    else
+                    {
+                        yield return null;
+                    }
+                }
+
+                if (sampleQuestions.Count == 0 && config.fallbackToSampleQuestions && quizQueue.Count == previousCount)
+                {
+                    Debug.LogError("[QuizProvider] Cannot continue. No AI quizzes and no sample questions available.");
+                    break;
                 }
             }
         }
@@ -58,6 +98,14 @@ public class QuizProvider : MonoBehaviour
         if (quizQueue.Count <= refillThreshold)
         {
             TryStartBackgroundRefill(jlptLevel);
+        }
+
+        if (quizQueue.Count == 0)
+        {
+            if (config.useDemoMode || config.fallbackToSampleQuestions)
+            {
+                EnqueueSampleQuizzes(1);
+            }
         }
 
         if (quizQueue.Count == 0)
@@ -82,6 +130,12 @@ public class QuizProvider : MonoBehaviour
 
         if (!ignoreThreshold && quizQueue.Count > refillThreshold)
             return;
+
+        if (config.useDemoMode)
+        {
+            EnqueueSampleQuizzes(refillBatchSize);
+            return;
+        }
 
         StartCoroutine(GenerateAndEnqueue(jlptLevel, refillBatchSize));
     }
@@ -157,6 +211,64 @@ public class QuizProvider : MonoBehaviour
         if (totalAddedCount < targetAddedCount)
         {
             Debug.LogWarning($"Generated fewer quizzes than requested: {totalAddedCount}/{targetAddedCount}");
+
+            if (config.fallbackToSampleQuestions)
+            {
+                int fallbackCount = targetAddedCount - totalAddedCount;
+                Debug.LogWarning($"[QuizProvider] Falling back to {fallbackCount} sample quizzes.");
+                int sampleAdded = EnqueueSampleQuizzes(fallbackCount);
+                totalAddedCount += sampleAdded;
+            }
+        }
+
+        isGenerating = false;
+    }
+
+    private IEnumerator GenerateAndEnqueueOnce(string jlptLevel, int count)
+    {
+        isGenerating = true;
+
+        string systemPrompt = promptBuilder.BuildSystemPrompt();
+        string userPrompt = promptBuilder.BuildUserPrompt(jlptLevel, count);
+
+        string rawResponse = null;
+        string errorMessage = null;
+
+        yield return StartCoroutine(
+            lmStudioClient.RequestQuizBatch(
+                systemPrompt,
+                userPrompt,
+                response =>
+                {
+                    rawResponse = response;
+                },
+                error =>
+                {
+                    errorMessage = error;
+                }
+            )
+        );
+
+        if (!string.IsNullOrEmpty(errorMessage))
+        {
+            Debug.LogError($"LM Studio Error: {errorMessage}");
+
+            if (config.fallbackToSampleQuestions)
+            {
+                Debug.LogWarning($"[QuizProvider] Falling back to {count} sample quizzes.");
+                EnqueueSampleQuizzes(count);
+            }
+        }
+        else
+        {
+            int addedCount = AddParsedQuizzes(rawResponse);
+            Debug.Log($"Single generation request added {addedCount} valid quizzes. Current queue: {quizQueue.Count}");
+
+            if (addedCount == 0 && config.fallbackToSampleQuestions)
+            {
+                Debug.LogWarning($"[QuizProvider] Parsed 0 valid quizzes. Falling back to {count} sample quizzes.");
+                EnqueueSampleQuizzes(count);
+            }
         }
 
         isGenerating = false;
@@ -194,41 +306,48 @@ public class QuizProvider : MonoBehaviour
         return addedCount;
     }
 
-    private IEnumerator GenerateAndEnqueueOnce(string jlptLevel, int count)
+    private int EnqueueSampleQuizzes(int count)
     {
-        isGenerating = true;
-
-        string systemPrompt = promptBuilder.BuildSystemPrompt();
-        string userPrompt = promptBuilder.BuildUserPrompt(jlptLevel, count);
-
-        string rawResponse = null;
-        string errorMessage = null;
-
-        yield return StartCoroutine(
-            lmStudioClient.RequestQuizBatch(
-                systemPrompt,
-                userPrompt,
-                response =>
-                {
-                    rawResponse = response;
-                },
-                error =>
-                {
-                    errorMessage = error;
-                }
-            )
-        );
-
-        if (!string.IsNullOrEmpty(errorMessage))
+        if (sampleQuestions == null || sampleQuestions.Count == 0)
         {
-            Debug.LogError($"LM Studio Error: {errorMessage}");
-        }
-        else
-        {
-            int addedCount = AddParsedQuizzes(rawResponse);
-            Debug.Log($"Single generation request added {addedCount} valid quizzes. Current queue: {quizQueue.Count}");
+            Debug.LogError("[QuizProvider] No sample questions available.");
+            return 0;
         }
 
-        isGenerating = false;
+        int addedCount = 0;
+
+        for (int i = 0; i < count; i++)
+        {
+            if (quizQueue.Count >= maxQueueSize)
+                break;
+
+            QuizData quiz = GetNextSampleQuestion();
+
+            if (quiz != null && QuizParser.IsValidQuiz(quiz))
+            {
+                quizQueue.Enqueue(quiz);
+                addedCount++;
+            }
+            else
+            {
+                Debug.LogWarning("[QuizProvider] Invalid sample quiz discarded.");
+            }
+        }
+
+        Debug.Log($"[QuizProvider] Added {addedCount} sample quizzes. Current queue: {quizQueue.Count}");
+        return addedCount;
+    }
+
+    private QuizData GetNextSampleQuestion()
+    {
+        if (sampleQuestions == null || sampleQuestions.Count == 0)
+        {
+            return null;
+        }
+
+        QuizData quiz = sampleQuestions[sampleIndex];
+        sampleIndex = (sampleIndex + 1) % sampleQuestions.Count;
+
+        return quiz;
     }
 }

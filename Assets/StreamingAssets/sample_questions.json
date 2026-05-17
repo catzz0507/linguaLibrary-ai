@@ -1,0 +1,42 @@
+[
+  {
+    "category": "kanji_reading",
+    "question": "「学校」の読み方はどれですか。",
+    "options": [ "がっこう", "がくせい", "せんせい", "きょうしつ" ],
+    "answerIndex": 0
+  },
+  {
+    "category": "vocabulary",
+    "question": "「大きい」の反対の意味に近い言葉はどれですか。",
+    "options": [ "高い", "小さい", "長い", "新しい" ],
+    "answerIndex": 1
+  },
+  {
+    "category": "grammar",
+    "question": "正しい文を選びなさい。",
+    "options": [
+      "私は毎日学校へ行きます。",
+      "私は毎日学校を行きます。",
+      "私は毎日学校で行きます。",
+      "私は毎日学校に行きますです。"
+    ],
+    "answerIndex": 0
+  },
+  {
+    "category": "usage",
+    "question": "次の文に最も自然な言葉を入れなさい：水を＿＿。",
+    "options": [ "食べます", "飲みます", "読みます", "見ます" ],
+    "answerIndex": 1
+  },
+  {
+    "category": "sentence_assembly",
+    "question": "自然な文になるように選びなさい。",
+    "options": [
+      "私は日本語を勉強しています。",
+      "日本語を私はしています勉強。",
+      "勉強を日本語しています私は。",
+      "しています私は日本語を勉強。"
+    ],
+    "answerIndex": 0
+  }
+]

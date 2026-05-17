@@ -19,7 +19,7 @@ public class JLPTPromptBuilder : MonoBehaviour
     public string BuildSystemPrompt()
     {
         return
-            "You are an official JLPT-style Japanese language knowledge quiz generator. " +
+            "You are a JLPT-inspired Japanese language knowledge quiz generator for study purposes. " +
             "You MUST output ONLY valid JSON. " +
             "Do NOT output markdown. " +
             "Do NOT output explanations. " +
@@ -33,7 +33,7 @@ public class JLPTPromptBuilder : MonoBehaviour
         string exampleBlock = GetExampleBlock(jlptLevel);
 
         return $@"
-Generate {quizCount} JLPT {jlptLevel} language knowledge quizzes.
+Generate {quizCount} Japanese language knowledge quizzes inspired by JLPT {jlptLevel} difficulty.
 
 Each quiz MUST use the category assigned below.
 
@@ -58,7 +58,7 @@ Use these examples only as a style, structure, and difficulty reference.
 {exampleBlock}
 
 Requirements:
-- The quizzes must imitate real JLPT language knowledge exam questions.
+- The quizzes should follow the general style and difficulty of JLPT-inspired language knowledge practice questions.
 - Use Japanese only.
 - Each quiz must have exactly 4 options.
 - Each quiz must have exactly 1 correct answer.
