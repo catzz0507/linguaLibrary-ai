@@ -157,15 +157,12 @@ Next Question Loaded
 
 ### Gameplay
 
-![Gameplay](docs/screenshots/gameplay_full.png)
+![Gameplay](docs/GamePlay_full.png)
 
-### Quiz Screen
-
-![Quiz](docs/screenshots/quiz_screen.png)
 
 ### Battle Feedback
 
-![Battle](docs/screenshots/battle_correct.png)
+![Battle](docs/Battle_correct.png)
 
 ---
 
@@ -227,6 +224,4 @@ This project is being prepared for the Gemma 4 Hackathon under the categories:
 
 ---
 
-## License
 
-MIT
