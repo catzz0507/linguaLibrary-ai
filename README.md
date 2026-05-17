@@ -1,10 +1,10 @@
-# LinguaQuest AI
+# LinguaLibrary AI
 
 A Gemma 4-powered language learning RPG platform, starting with JLPT Japanese.
 
 ## Overview
 
-LinguaQuest AI transforms language learning into an RPG battle experience.  
+LinguaLibrary AI transforms language learning into an RPG battle experience.  
 The current prototype focuses on JLPT Japanese learning as the first playable module.
 
 ## Key Features
