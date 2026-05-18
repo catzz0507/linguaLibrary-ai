@@ -1,18 +1,18 @@
 # LinguaLibrary AI
 
-> A Gemma 4-powered multilingual language learning platform, starting with Japanese learning through an RPG-style quiz battle prototype.
+> The current AI-powered prototype of **Lingua Library**, a game-based multilingual language learning project.
 
 ---
 
 ## Overview
 
-LinguaLibrary AI is a game-based language learning platform that combines RPG gameplay with AI-generated educational content.
+**Lingua Library** is a game-based language learning project, and **LinguaLibrary AI** is its current AI-powered prototype.
 
-The current prototype focuses on Japanese learning, where players answer AI-generated practice questions during RPG-style battle encounters.
+The current prototype focuses on Japanese learning through an RPG-style quiz battle system. Players answer AI-generated practice questions during battle encounters, and their answers directly affect the gameplay flow.
 
 Instead of relying only on static worksheets, repetitive flashcards, or fixed question banks, LinguaLibrary AI transforms language practice into an interactive gameplay loop.
 
-The current version is implemented as a Japanese learning prototype, but the long-term goal is to expand the same system into a multilingual learning platform.
+The current version is implemented as a Japanese learning prototype, but the long-term goal is to expand the same system into a multilingual language learning platform.
 
 ---
 
@@ -47,11 +47,31 @@ The result is a more engaging and scalable learning experience that combines AI-
 
 ---
 
+## Key Differentiators
+
+LinguaLibrary AI is designed around four core ideas:
+
+1. **AI-generated learning content**
+   - Gemma 4 generates structured practice questions instead of relying only on fixed question banks.
+
+2. **Game-based learning loop**
+   - Quiz answers are connected to RPG battle actions, making practice more interactive and repeatable.
+
+3. **Local-first architecture**
+   - The current prototype uses a local inference server instead of a cloud-only AI workflow.
+
+4. **Demo and fallback reliability**
+   - If the local AI server is unavailable, the game can fall back to bundled sample questions so the demo remains playable.
+
+---
+
 ## Why Gemma 4
 
 LinguaLibrary AI uses **Gemma 4 E4B running through a local inference server** to generate structured language-learning questions.
 
 This approach reduces dependency on cloud-only AI platforms and supports more privacy-preserving learning workflows.
+
+In the current prototype, Gemma 4 runs through a separate local inference server. The future goal is to move toward a fully bundled offline distribution where an optimized local model runtime can be packaged together with the game client.
 
 Gemma 4 enables:
 
@@ -63,6 +83,8 @@ Gemma 4 enables:
 - Flexible expansion to multiple languages and exam systems
 
 Instead of manually authoring thousands of static questions, the system generates quiz content dynamically through prompt-driven generation and validates the model output before it enters gameplay.
+
+> Note: The model name should be verified against the official hackathon naming guidelines and the exact local inference server model identifier before final submission.
 
 ---
 
@@ -99,6 +121,7 @@ The current implementation supports:
 - Prompt-based question generation
 - Structured quiz parsing
 - Unity-based game UI
+- Demo / fallback mode using bundled sample questions
 
 ### Supported Question Categories
 
@@ -117,7 +140,7 @@ The current implementation supports:
 
 JLPT-inspired Japanese learning is only the first module.
 
-The long-term goal is to evolve LinguaLibrary AI into a unified multilingual learning platform supporting:
+The long-term goal is to evolve Lingua Library into a unified multilingual learning platform supporting:
 
 - Korean TOPIK
 - English TOEIC / IELTS
@@ -144,13 +167,16 @@ The current prototype uses Gemma 4 E4B through a local inference server. This de
 
 In future versions, LinguaLibrary AI aims to package an optimized local model runtime together with the game client. This would allow learners to download the game and generate new questions directly on their own device without requiring internet access or a separate cloud API.
 
+This distinction is important: the current hackathon prototype demonstrates local inference through an external local server, while future versions aim to make the AI runtime part of the downloadable game package itself.
+
 This direction is especially important for:
 
 - Classrooms with unstable internet access
 - Learners who cannot rely on paid cloud-based learning platforms
 - Privacy-sensitive learning environments
 - Communities that need multilingual learning tools without always-online infrastructure
-```
+
+---
 
 ## Architecture
 
@@ -165,20 +191,43 @@ Unity Game Client
     ↓
 QuizProvider
     ↓
-PromptBuilder
+JLPTPromptBuilder
     ↓
-Local Gemma-Compatible Inference Server
+Local Inference Server
     ↓
 Model: Gemma 4 E4B
     ↓
 Structured JSON Response
     ↓
-JSON Parser / Validator
+QuizParser & Validation
     ↓
 Quiz Queue
     ↓
-RPG Battle Gameplay
+Battle Gameplay System
 ```
+
+---
+
+## Validation Rules
+
+Because AI-generated educational content can be inconsistent, LinguaLibrary AI does not directly trust raw model output.
+
+Before a generated quiz enters gameplay, the system validates the response using several structural checks:
+
+- The response must be parseable as JSON.
+- The response must contain a quiz batch structure.
+- Each quiz must include a non-empty question.
+- Each quiz must include exactly four answer options.
+- The correct answer index must be within the valid range.
+- Invalid or incomplete quizzes are discarded.
+- If parsing or validation fails, the system retries generation or falls back to sample questions.
+
+This validation layer is important because it reduces the chance of broken JSON, missing options, invalid answer indices, or unusable quiz data interrupting the game flow.
+
+For educational correctness, the current prototype uses prompt constraints, level-specific examples, category-specific formatting, and fallback sample data. Future versions will add stronger review mechanisms such as answer explanation checks, difficulty calibration, teacher review tools, and learner feedback loops.
+
+---
+
 ## Demo Mode and Fallback System
 
 LinguaLibrary AI supports two execution modes:
@@ -193,8 +242,8 @@ LinguaLibrary AI supports two execution modes:
    - Allows the game to remain playable even when a local Gemma server is unavailable.
    - Helps judges and testers experience the gameplay loop without installing a local AI runtime.
 
-If the local inference server cannot be reached, or if the AI request times out, the game automatically falls back to sample questions when `fallbackToSampleQuestions` is enabled.
-```
+If the local inference server cannot be reached, if the AI request times out, or if the model output cannot be parsed into valid quiz data, the game automatically falls back to sample questions when `fallbackToSampleQuestions` is enabled.
+
 ---
 
 ## Example Gameplay Loop
@@ -221,6 +270,7 @@ Next Question Loaded
 - Local inference server workflow
 - Prompt-based structured generation
 - JSON-based parsing and validation
+- Demo fallback using bundled sample questions
 
 ---
 
@@ -243,7 +293,9 @@ Current state:
 - Prototype completed
 - GitHub repository prepared
 - Gameplay loop implemented
-- README and hackathon documentation in progress
+- Local inference workflow implemented
+- Demo / fallback mode implemented
+- Windows demo build prepared
 - Submission materials being prepared for the Gemma 4 Hackathon
 
 Planned next steps:
@@ -254,24 +306,77 @@ Planned next steps:
 - Audio and pronunciation training
 - Multimodal learning content
 - Teacher dashboard
+- Fully bundled offline AI runtime
 - Web or mobile deployment
 
 ---
 
 ## Setup
 
-### Requirements
+### Option 1: Run the Windows Demo
+
+The Windows demo can be downloaded from the GitHub Releases page.
+
+The demo is designed to be playable even without a local Gemma server by using bundled sample questions in Demo / Fallback Mode.
+
+1. Download the latest Windows demo zip from GitHub Releases.
+2. Extract the zip file.
+3. Run the executable file.
+4. Play the quiz battle demo.
+
+No local AI setup is required for the default demo experience.
+
+### Option 2: Run from Unity
+
+Requirements:
 
 - Unity 6
-- Gemma 4 E4B running through a local inference server
+- Project source code from this repository
 
-### Run Instructions
+Steps:
 
 1. Clone this repository.
 2. Open the project in Unity.
-3. Configure the local inference server endpoint.
-4. Launch the main gameplay scene.
-5. Start learning through RPG-style quiz battle gameplay.
+3. Open the main gameplay scene.
+4. Confirm that `Assets/StreamingAssets/sample_questions.json` exists.
+5. Press Play in the Unity Editor.
+
+If no local inference server is running, the game can still use bundled sample questions when fallback mode is enabled.
+
+### Option 3: Use Local Gemma Mode
+
+To test dynamic AI-generated questions:
+
+1. Run a Gemma 4 E4B-compatible local inference server.
+2. Copy `Assets/StreamingAssets/config.example.json` to `Assets/StreamingAssets/config.json`.
+3. Update the local server endpoint and model name in `config.json`.
+4. Set `useDemoMode` to `false`.
+5. Set `fallbackToSampleQuestions` to `true`.
+6. Run the game.
+
+Example configuration:
+
+```json
+{
+  "apiUrl": "http://127.0.0.1:1234/v1/chat/completions",
+  "model": "gemma-4-e4b",
+  "useDemoMode": false,
+  "fallbackToSampleQuestions": true,
+  "timeoutSeconds": 10
+}
+```
+
+For demo-only testing without local AI generation, set:
+
+```json
+{
+  "apiUrl": "http://127.0.0.1:1234/v1/chat/completions",
+  "model": "gemma-4-e4b",
+  "useDemoMode": true,
+  "fallbackToSampleQuestions": true,
+  "timeoutSeconds": 10
+}
+```
 
 ---
 
